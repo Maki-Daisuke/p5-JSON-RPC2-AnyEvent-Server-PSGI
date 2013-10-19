@@ -21,7 +21,9 @@ sub JSON::RPC2::AnyEvent::Server::to_psgi_app {
         if ( $req->method eq 'GET' or  $req->method eq 'HEAD' ) {
             return _dispatch_url_query($self, $req);
         } elsif ( $req->method eq 'POST' ) {
-            return _dispatch_json($self, $req);
+            return $req->content_type =~ m|^application/x-www-form-urlencoded$|i
+                ? _dispatch_url_query($self, $req)
+                : _dispatch_json($self, $req);
         } else {
             return [405, ['Content-type' => 'text/plain'], ['Method Not Allowed']]
         }
