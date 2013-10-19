@@ -50,7 +50,7 @@ sub _dispatch_url_query {
     };
 }
 
-sub _dispatch_body {
+sub _dispatch_json {
     my ($self, $req) = @_;
     sub{
         my $writer = shift->([200, ['Content-Type', 'application/json']]);
