@@ -1,1 +1,1 @@
-name = "JSON-RPC2-AnyEvent-Server-PSGI"
+badges = ['travis']

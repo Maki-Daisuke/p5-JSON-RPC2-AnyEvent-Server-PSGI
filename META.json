@@ -59,5 +59,15 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/Maki-Daisuke/p5-JSON-RPC2-AnyEvent-Server-PSGI/issues"
+      },
+      "homepage" : "https://github.com/Maki-Daisuke/p5-JSON-RPC2-AnyEvent-Server-PSGI",
+      "repository" : {
+         "url" : "https://github.com/Maki-Daisuke/p5-JSON-RPC2-AnyEvent-Server-PSGI",
+         "web" : "https://github.com/Maki-Daisuke/p5-JSON-RPC2-AnyEvent-Server-PSGI"
+      }
+   },
    "version" : "0.01"
 }
