@@ -116,7 +116,11 @@ That's it!
 =head1 URL-QUERY MAPPING
 
 While you can send requests as JSON of course, you can also send requests as
-application/x-www-form-urlencoded format for convinience. For example:
+application/x-www-form-urlencoded format for your convinience. The mapping rule
+between URL-query to JSON is similar to but slightly different from the rule of
+<JSON-RPC 1.1 Draft|http://tonyg.github.io/erlang-rfc4627/doc/JSON-RPC-1-1-WD-20060807.html>.
+
+For example:
 
     POST /jsonrpc/do_it HTTP/1.1
     Host: example.com
@@ -134,7 +138,7 @@ This request is equivalent to the below:
     
     {"jsonrpc":"2.0", "id":null, "method":"do_it", "params":{"foo":1, "bar":2}}
 
-Key-value pairs of URL-encoded query is translated into a JSON object and method to be
+Key-value pairs of URL-encoded query is translated into a JSON object (hash) and method to be
 called is determined by the path-info (extra-path) part in the requested URI.
 
 This module makes special treatment for requests with Content-Type header set to
@@ -143,9 +147,24 @@ This module makes special treatment for requests with Content-Type header set to
 You can even call RPC by HTTP GET request. The above request is also equivalent to
 the following:
 
-    GET /jsonrpc?foo=1&bar=2 HTTP/1.1
+    GET /jsonrpc/do_it?foo=1&bar=2 HTTP/1.1
     Host: example.com
     
+
+If a key is used multiple times, it is treated as a arrayref. For instance:
+
+    GET /jsonrpc/do_it?foo=1&bar=2&foo=3 HTTP/1.1
+    Host: example.com
+    
+
+is equivalent to:
+
+    POST /jsonrpc HTTP/1.1
+    Host: example.com
+    Content-Type: application/json
+    Content-Length: 81
+    
+    {"jsonrpc":"2.0", "id":null, "method":"do_it", "params":{"foo":[1, 3], "bar":2}}
 
 
 =head1 LICENSE
