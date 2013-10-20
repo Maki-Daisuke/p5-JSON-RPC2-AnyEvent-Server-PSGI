@@ -68,8 +68,9 @@ This request is equivalent to the below:
 Key-value pairs of URL-encoded query is translated into a JSON object (hash) and method to be
 called is determined by the path-info (extra-path) part in the requested URI.
 
-This module makes special treatment for requests with Content-Type header set to
-"application/x-www-form-urlencoded".
+This module makes special treatment only for requests with Content-Type header set to
+"application/x-www-form-urlencoded". That is, requests with the other Content-Type, including
+"application/json", are all regarded as JSON format.
 
 You can even call RPC by HTTP GET request. The above request is also equivalent to
 the following:
@@ -80,7 +81,7 @@ the following:
 
 
 
-If a key is used multiple times, it is treated as a arrayref. For instance:
+If a key is used multiple times, it is treated as an arrayref. For instance:
 
     GET /jsonrpc/do_it?foo=1&bar=2&foo=3 HTTP/1.1
     Host: example.com
