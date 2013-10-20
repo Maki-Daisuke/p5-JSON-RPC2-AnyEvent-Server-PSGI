@@ -115,7 +115,7 @@ That's it!
 While you can send requests as JSON of course, you can also send requests as
 application/x-www-form-urlencoded format for your convinience. The mapping rule
 between URL-query to JSON is similar to but slightly different from the rule of
-<JSON-RPC 1.1 Draft|http://tonyg.github.io/erlang-rfc4627/doc/JSON-RPC-1-1-WD-20060807.html>.
+L<JSON-RPC 1.1 Draft|http://tonyg.github.io/erlang-rfc4627/doc/JSON-RPC-1-1-WD-20060807.html>.
 
 For example:
 
