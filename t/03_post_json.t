@@ -2,9 +2,6 @@ use strict;
 use Test::More;
 use Test::Exception;
 
-BEGIN{
-    $ENV{PLACK_TEST_IMPL} = 'Server';  # Cannot test non-blocking app with MochHTTP
-}
 use Plack::Test;
 use HTTP::Request::Common;
 
@@ -24,10 +21,11 @@ my $app = JSON::RPC2::AnyEvent::Server->new(
 )->to_psgi_app;
 
 
+$Plack::Test::Impl = 'AnyEvent';
+
 test_psgi $app, sub{
     my $cb = shift;
-
-    my $json = JSON->new->utf8;
+    my $json = JSON->new;
 
     my $res = $cb->(POST '/',
         'Content-Type' => 'application/json',
@@ -38,14 +36,17 @@ test_psgi $app, sub{
             params => {hoge => 1, fuga => 2},
         })
     );
-    is $res->code, 200;
-    is $res->header('Content-type'), 'application/json';
-    lives_ok{ $res = JSON->new->decode($res->content) };
-    is $res->{id}, 1;
-    ok(not exists $res->{error});
-    is_deeply $res->{result}, {hoge => 1, fuga => 2};
+    $res->on_content_received(sub{
+        is $res->code, 200;
+        is $res->header('Content-type'), 'application/json';
+        lives_ok{ $res = $json->decode($res->content) };
+        is $res->{id}, 1;
+        ok(not exists $res->{error});
+        is_deeply $res->{result}, {hoge => 1, fuga => 2};
+    });
+    $res->recv;
 
-    my $res = $cb->(POST '/unknown',  # extra-path is just ignored
+    $res = $cb->(POST '/unknown',  # extra-path is just ignored
         'Content-Type' => 'application/json',
         Content => $json->encode({
             jsonrpc => '2,0',
@@ -54,14 +55,17 @@ test_psgi $app, sub{
             params => [qw(one two three)],
         })
     );
-    is $res->code, 200;
-    is $res->header('Content-type'), 'application/json';
-    lives_ok{ $res = JSON->new->decode($res->content) };
-    is $res->{id}, 2;
-    ok(not exists $res->{error});
-    is_deeply $res->{result}, [qw(one two three)];
+    $res->on_content_received(sub{
+        is $res->code, 200;
+        is $res->header('Content-type'), 'application/json';
+        lives_ok{ $res = $json->decode($res->content) };
+        is $res->{id}, 2;
+        ok(not exists $res->{error});
+        is_deeply $res->{result}, [qw(one two three)];
+    });
+    $res->recv;
 
-    my $res = $cb->(POST '/echo',  # extra-path is just ignored, and so, this is dispatched to 'wanthash'
+    $res = $cb->(POST '/echo',  # extra-path is just ignored, and so, this is dispatched to 'wanthash'
         'Content-Type' => 'application/json',
         Content => $json->encode({
             jsonrpc => '2,0',
@@ -70,31 +74,37 @@ test_psgi $app, sub{
             params => [1, 2, 3],
         })
     );
-    is $res->code, 200;
-    is $res->header('Content-type'), 'application/json';
-    lives_ok{ $res = JSON->new->decode($res->content) };
-    is $res->{id}, 3;
-    ok(not exists $res->{error});
-    is_deeply $res->{result}, {x => 1, y => 2, z => 3};
+    $res->on_content_received(sub{
+        is $res->code, 200;
+        is $res->header('Content-type'), 'application/json';
+        lives_ok{ $res = $json->decode($res->content) };
+        is $res->{id}, 3;
+        ok(not exists $res->{error});
+        is_deeply $res->{result}, {x => 1, y => 2, z => 3};
+    });
+    $res->recv;
 
-    my $res = $cb->(POST '/echo',  # extra-path is just ignored, and so, this is invalid request
+    $res = $cb->(POST '/echo',  # extra-path is just ignored, and so, this is invalid request
         'Content-Type' => 'application/json',
         Content => $json->encode({
             jsonrpc => '2,0',
             id      => 4,
-            #method  => 'echo',  # intentionally
+            #method  => 'echo',  # intentionally omitted
             params => [1, 2, 3],
         })
     );
-    is $res->code, 200;
-    is $res->header('Content-type'), 'application/json';
-    lives_ok{ $res = JSON->new->decode($res->content) };
-    is $res->{id}, 4;
-    ok(not exists $res->{result});
-    isa_ok $res->{error}, 'HASH';
-    is $res->{error}{code}, -32600;
+    $res->on_content_received(sub{
+        is $res->code, 200;
+        is $res->header('Content-type'), 'application/json';
+        lives_ok{ $res = $json->decode($res->content) };
+        is $res->{id}, 4;
+        ok(not exists $res->{result});
+        isa_ok $res->{error}, 'HASH';
+        is $res->{error}{code}, -32600;
+    });
+    $res->recv;
 
-    my $res = $cb->(POST '/',
+    $res = $cb->(POST '/',
         'Content-Type' => 'text/plain',  # Content-body is parsed as JSON except application/x-www-form-urlencoded
         Content => $json->encode({
             jsonrpc => '2,0',
@@ -103,12 +113,15 @@ test_psgi $app, sub{
             params => ["OK"],
         })
     );
-    is $res->code, 200;
-    is $res->header('Content-type'), 'application/json';
-    lives_ok{ $res = JSON->new->decode($res->content) };
-    is $res->{id}, 5;
-    ok(not exists $res->{error});
-    is_deeply $res->{result}, ["OK"];
+    $res->on_content_received(sub{
+        is $res->code, 200;
+        is $res->header('Content-type'), 'application/json';
+        lives_ok{ $res = $json->decode($res->content) };
+        is $res->{id}, 5;
+        ok(not exists $res->{error});
+        is_deeply $res->{result}, ["OK"];
+    });
+    $res->recv;
     
     done_testing;
 };

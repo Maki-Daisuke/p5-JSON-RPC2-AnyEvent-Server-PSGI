@@ -4,7 +4,7 @@
       "Daisuke (yet another) Maki <maki.daisuke@gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.8.0, CPAN::Meta::Converter version 2.132830",
+   "generated_by" : "Minilla/v0.8.0, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -53,6 +53,7 @@
          "requires" : {
             "HTTP::Request::Common" : "0",
             "Plack::Test" : "0",
+            "Plack::Test::AnyEvent" : "0",
             "Test::Exception" : "0",
             "Test::More" : "0.98"
          }
