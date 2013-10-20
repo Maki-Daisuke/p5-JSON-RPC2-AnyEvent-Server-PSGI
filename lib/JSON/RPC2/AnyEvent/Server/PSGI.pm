@@ -34,42 +34,39 @@ my $json = JSON->new->utf8;
 
 sub _dispatch_url_query {
     my ($self, $req) = @_;
-    sub{
-        my $writer = shift->([200, ['Content-Type', 'application/json']]);
-        my $params = $req->parameters;
-        $self->dispatch({
-            jsonrpc => '2.0',
-            id      => undef,
-            method  => substr($req->path_info, 1),
-            params  => $params->mixed,
-        })->cb(sub{
-            my $res = shift->recv;
-            $writer->write($json->encode($res));
-            $writer->close;
-        });
-    };
+    _dispatch_aux($self, {
+        jsonrpc => '2.0',
+        id      => undef,
+        method  => substr($req->path_info, 1),
+        params  => $req->parameters->mixed,
+    });
 }
 
 sub _dispatch_json {
     my ($self, $req) = @_;
+    try{
+        my $hash = $json->decode($req->content);
+        _dispatch_aux($self, $hash);
+    } catch {
+        [200, ['Content-Type', 'application/json'], [$json->encode({
+            jsonrpc => '2.0',
+            id      => undef,
+            error   => {code => ERR_PARSE_ERROR, message => 'Parse error', data => shift}
+        })]]
+    };
+}
+
+sub _dispatch_aux {
+    my ($self, $hash) = @_;
+    my $cv = $self->dispatch($hash);
+    return [200, [], []]  unless $cv;  # notification
     sub{
         my $writer = shift->([200, ['Content-Type', 'application/json']]);
-        try{
-            my $hash = $json->decode($req->content);
-            $hash->{id} = undef  unless exists $hash->{id};
-            $self->dispatch($hash)->cb(sub{
-                my $res = shift->recv;
-                $writer->write($json->encode($res));
-                $writer->close;
-            });
-        } catch {
-            $writer->write($json->encode({
-                jsonrpc => '2.0',
-                id      => undef,
-                error   => {code => ERR_PARSE_ERROR, message => 'Parse error', data => shift}
-            }));
+        $cv->cb(sub{
+            my $res = shift->recv;
+            $writer->write($json->encode($res));
             $writer->close;
-        }
+        });
     };
 }
 
@@ -165,6 +162,17 @@ is equivalent to:
     Content-Length: 81
     
     {"jsonrpc":"2.0", "id":null, "method":"do_it", "params":{"foo":[1, 3], "bar":2}}
+
+
+=head1 NOTIFICATION
+
+Since L<JSON-RPC 2.0 spec|http://www.jsonrpc.org/specification> defines "The Server MUST NOT
+reply to a Notification, this module does not reply any responses for notification requests,
+but just returns empty HTTP response (zero-length content body) with status code 200.
+
+Actually, the server returns response as soon as it turns out the response is notification,
+even when the corresponding server method has not completed the process. It can be an advantege
+to normal method call requests, because it blocks clients only for short time.
 
 
 =head1 LICENSE

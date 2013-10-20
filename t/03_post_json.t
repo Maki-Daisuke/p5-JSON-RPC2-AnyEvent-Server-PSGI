@@ -109,7 +109,7 @@ test_psgi $app, sub{
         Content => $json->encode({
             jsonrpc => '2,0',
             id      => 5,
-            method  => 'echo',  # intentionally
+            method  => 'echo',
             params => ["OK"],
         })
     );

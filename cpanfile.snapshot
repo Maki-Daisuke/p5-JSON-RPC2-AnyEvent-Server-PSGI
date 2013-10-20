@@ -349,6 +349,17 @@ DISTRIBUTIONS
       Try::Tiny 0
       URI 1.59
       parent 0
+  Plack-Test-AnyEvent-0.04
+    pathname: R/RH/RHOELZ/Plack-Test-AnyEvent-0.04.tar.gz
+    provides:
+      Plack::Test::AnyEvent 0.04
+      Plack::Test::AnyEvent::Test undef
+    requirements:
+      AnyEvent 0
+      Module::Build 0.3601
+      Plack 0
+      autodie 0
+      perl v5.8.8
   Stream-Buffered-0.02
     pathname: D/DO/DOY/Stream-Buffered-0.02.tar.gz
     provides:

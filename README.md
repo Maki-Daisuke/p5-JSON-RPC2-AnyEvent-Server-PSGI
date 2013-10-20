@@ -100,6 +100,18 @@ is equivalent to:
 
 
 
+# NOTIFICATION
+
+Since [JSON-RPC 2.0 spec](http://www.jsonrpc.org/specification) defines "The Server MUST NOT
+reply to a Notification, this module does not reply any responses for notification requests,
+but just returns empty HTTP response (zero-length content body) with status code 200.
+
+Actually, the server returns response as soon as it turns out the response is notification,
+even when the corresponding server method has not completed the process. It can be an advantege
+to normal method call requests, because it blocks clients only for short time.
+
+
+
 # LICENSE
 
 Copyright (C) Daisuke (yet another) Maki.
